@@ -1,56 +1,51 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, Users, Activity, MapPin, Calendar, RefreshCw } from 'lucide-react';
+import { TrendingUp, Users, Activity, MapPin, RefreshCw } from 'lucide-react';
 import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 import apiService from '../../services/api.service';
+import { pageTitle, pageSubtitle } from '../../components/ui/shared.jsx';
 
-// Ranglar
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-
-// Vaqt oralig'i
+const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#a855f7', '#ec4899'];
 const RANGES = [
   { value: '7d', label: '7 kun' },
   { value: '30d', label: '30 kun' },
   { value: '90d', label: '3 oy' },
 ];
 
-// Custom tooltip
-function CustomTooltip({ active, payload, label }) {
+function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-dark-800 border border-dark-600 rounded-lg px-3 py-2 text-xs">
-      <p className="text-gray-400 mb-1.5">{label}</p>
+    <div style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border2)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
+      <p style={{ color: 'var(--c-text2)', marginBottom: 4 }}>{label}</p>
       {payload.map((p) => (
-        <div key={p.name} className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
-          <span className="text-gray-300">{p.name}:</span>
-          <span className="font-bold text-white">{p.value?.toLocaleString()}</span>
+        <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.color, flexShrink: 0 }} />
+          <span style={{ color: 'var(--c-text2)' }}>{p.name}:</span>
+          <span style={{ color: 'var(--c-text)', fontWeight: 700 }}>{p.value?.toLocaleString()}</span>
         </div>
       ))}
     </div>
   );
 }
 
-// Stat karta
 function StatCard({ icon: Icon, label, value, change, color }) {
-  const isPositive = change >= 0;
+  const isPos = change >= 0;
   return (
     <div className="card">
-      <div className="flex items-start justify-between mb-3">
-        <div className={`p-2.5 rounded-lg bg-opacity-20`} style={{ backgroundColor: color + '33' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+        <div style={{ padding: 10, borderRadius: 10, background: color + '22', display: 'flex' }}>
           <Icon size={18} style={{ color }} />
         </div>
         {change !== undefined && (
-          <span className={`text-xs font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-            {isPositive ? '↑' : '↓'} {Math.abs(change)}%
+          <span style={{ fontSize: 12, fontWeight: 600, color: isPos ? 'var(--c-green)' : 'var(--c-red)' }}>
+            {isPos ? '↑' : '↓'} {Math.abs(change)}%
           </span>
         )}
       </div>
-      <div className="text-2xl font-bold text-white mb-0.5">{value?.toLocaleString() || 0}</div>
-      <div className="text-xs text-gray-500">{label}</div>
+      <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--c-text)', lineHeight: 1 }}>{value?.toLocaleString() || 0}</div>
+      <div style={{ color: 'var(--c-muted)', fontSize: 12, marginTop: 5 }}>{label}</div>
     </div>
   );
 }
@@ -66,131 +61,124 @@ export default function StatisticsPage() {
       const res = await apiService.get('/admin/statistics', { params: { range } });
       setData(res.data.data);
     } catch {
-      // Fallback - demo ma'lumotlar
       setData(generateDemoData(range));
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, [range]);
+  useEffect(() => { fetchStats(); }, [range]);
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 className="text-2xl font-bold text-white">Statistika</h1>
-          <p className="text-gray-400 text-sm mt-1">Foydalanuvchi faolligi va o'sish ko'rsatkichlari</p>
+          <h1 style={pageTitle}>Statistika</h1>
+          <p style={pageSubtitle}>Foydalanuvchi faolligi va o'sish ko'rsatkichlari</p>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Vaqt oralig'i */}
-          <div className="flex gap-1 bg-dark-700 border border-dark-600 rounded-lg p-1">
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 4, background: 'var(--c-panel)', border: '1px solid var(--c-border2)', borderRadius: 9, padding: 4 }}>
             {RANGES.map((r) => (
               <button
-                key={r.value}
-                onClick={() => setRange(r.value)}
-                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                  range === r.value
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
+                key={r.value} onClick={() => setRange(r.value)}
+                style={{
+                  padding: '6px 14px', borderRadius: 6, fontSize: 12, fontWeight: 500,
+                  cursor: 'pointer', border: 'none',
+                  background: range === r.value ? 'var(--c-blue)' : 'transparent',
+                  color: range === r.value ? '#fff' : 'var(--c-text2)',
+                  transition: 'all 0.15s',
+                }}
               >
                 {r.label}
               </button>
             ))}
           </div>
-          <button onClick={fetchStats} className="flex items-center gap-2 btn-secondary text-sm">
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          <button onClick={fetchStats} className="btn-secondary">
+            <RefreshCw size={14} style={{ animation: loading ? 'spin 0.7s linear infinite' : 'none' }} />
             Yangilash
           </button>
         </div>
       </div>
 
-      {/* Summary kartalar */}
+      {/* Summary cards */}
       {data?.summary && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard icon={Users} label="Yangi foydalanuvchilar" value={data.summary.newUsers} change={data.summary.newUsersChange} color="#3B82F6" />
-          <StatCard icon={Activity} label="Sessiyalar" value={data.summary.sessions} change={data.summary.sessionsChange} color="#10B981" />
-          <StatCard icon={MapPin} label="Egallangan hududlar" value={data.summary.captures} change={data.summary.capturesChange} color="#F59E0B" />
-          <StatCard icon={TrendingUp} label="Jami masofa (km)" value={Math.round((data.summary.totalDistance || 0) / 1000)} change={data.summary.distanceChange} color="#8B5CF6" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 14 }}>
+          <StatCard icon={Users} label="Yangi foydalanuvchilar" value={data.summary.newUsers} change={data.summary.newUsersChange} color="#3b82f6" />
+          <StatCard icon={Activity} label="Sessiyalar" value={data.summary.sessions} change={data.summary.sessionsChange} color="#22c55e" />
+          <StatCard icon={MapPin} label="Egallangan hududlar" value={data.summary.captures} change={data.summary.capturesChange} color="#f59e0b" />
+          <StatCard icon={TrendingUp} label="Jami masofa (km)" value={Math.round((data.summary.totalDistance || 0) / 1000)} change={data.summary.distanceChange} color="#a855f7" />
         </div>
       )}
 
-      {/* Foydalanuvchi o'sishi */}
+      {/* User growth */}
       {data?.userGrowth && (
         <div className="card">
-          <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
-            <Users size={16} className="text-blue-400" />
-            Foydalanuvchilar o'sishi
-          </h3>
-          <ResponsiveContainer width="100%" height={250}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <Users size={16} style={{ color: 'var(--c-blue)' }} />
+            <span style={{ color: 'var(--c-text)', fontWeight: 600, fontSize: 14 }}>Foydalanuvchilar o'sishi</span>
+          </div>
+          <ResponsiveContainer width="100%" height={240}>
             <AreaChart data={data.userGrowth} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="userGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="total" name="Jami" stroke="#3B82F6" fill="url(#userGrad)" strokeWidth={2} />
-              <Area type="monotone" dataKey="new" name="Yangi" stroke="#10B981" fill="none" strokeWidth={2} strokeDasharray="4 2" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--c-border)" />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--c-muted)' }} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--c-muted)' }} />
+              <Tooltip content={<ChartTooltip />} />
+              <Area type="monotone" dataKey="total" name="Jami" stroke="#3b82f6" fill="url(#userGrad)" strokeWidth={2} />
+              <Area type="monotone" dataKey="new" name="Yangi" stroke="#22c55e" fill="none" strokeWidth={2} strokeDasharray="4 2" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      {/* Kunlik faollik */}
+      {/* Daily activity */}
       {data?.dailyActivity && (
         <div className="card">
-          <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
-            <Activity size={16} className="text-green-400" />
-            Kunlik faollik
-          </h3>
-          <ResponsiveContainer width="100%" height={230}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <Activity size={16} style={{ color: 'var(--c-green)' }} />
+            <span style={{ color: 'var(--c-text)', fontWeight: 600, fontSize: 14 }}>Kunlik faollik</span>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
             <BarChart data={data.dailyActivity} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ fontSize: '12px' }} />
-              <Bar dataKey="sessions" name="Sessiyalar" fill="#10B981" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="captures" name="Hududlar" fill="#F59E0B" radius={[3, 3, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--c-border)" />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--c-muted)' }} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--c-muted)' }} />
+              <Tooltip content={<ChartTooltip />} />
+              <Bar dataKey="sessions" name="Sessiyalar" fill="#22c55e" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="captures" name="Hududlar" fill="#f59e0b" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      {/* Ikki ustun: Viloyat & Top foydalanuvchilar */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Viloyat bo'yicha taqsimot */}
+      {/* Two-column: regions + top users */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
         {data?.regionDistribution && (
           <div className="card">
-            <h3 className="font-semibold text-white mb-4">Viloyat bo'yicha foydalanuvchilar</h3>
-            <div className="flex items-center gap-4">
-              <ResponsiveContainer width="50%" height={160}>
+            <div style={{ color: 'var(--c-text)', fontWeight: 600, fontSize: 14, marginBottom: 16 }}>Viloyat bo'yicha foydalanuvchilar</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <ResponsiveContainer width="50%" height={150}>
                 <PieChart>
-                  <Pie data={data.regionDistribution} cx="50%" cy="50%" innerRadius={40} outerRadius={70} dataKey="value" paddingAngle={3}>
+                  <Pie data={data.regionDistribution} cx="50%" cy="50%" innerRadius={36} outerRadius={65} dataKey="value" paddingAngle={3}>
                     {data.regionDistribution.map((_, idx) => (
                       <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={<ChartTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex-1 space-y-2">
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {data.regionDistribution.slice(0, 6).map((item, idx) => (
-                  <div key={item.name} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }} />
-                      <span className="text-xs text-gray-400 capitalize">{item.name}</span>
+                  <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <span style={{ width: 9, height: 9, borderRadius: '50%', background: COLORS[idx % COLORS.length], flexShrink: 0 }} />
+                      <span style={{ fontSize: 12, color: 'var(--c-text2)', textTransform: 'capitalize' }}>{item.name}</span>
                     </div>
-                    <span className="text-xs text-white font-medium">{item.value}</span>
+                    <span style={{ fontSize: 12, color: 'var(--c-text)', fontWeight: 600 }}>{item.value}</span>
                   </div>
                 ))}
               </div>
@@ -198,69 +186,52 @@ export default function StatisticsPage() {
           </div>
         )}
 
-        {/* Top faol foydalanuvchilar */}
         {data?.topUsers && (
           <div className="card">
-            <h3 className="font-semibold text-white mb-4">Top faol foydalanuvchilar</h3>
-            <div className="space-y-3">
+            <div style={{ color: 'var(--c-text)', fontWeight: 600, fontSize: 14, marginBottom: 16 }}>Top faol foydalanuvchilar</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {data.topUsers.slice(0, 6).map((user, idx) => (
-                <div key={user.id} className="flex items-center gap-3">
-                  <span className="text-xs text-gray-500 w-5 text-center">{idx + 1}</span>
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                <div key={user.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 12, color: 'var(--c-muted)', width: 18, textAlign: 'center' }}>{idx + 1}</span>
+                  <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
                     {user.username?.[0]?.toUpperCase()}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-white font-medium truncate">{user.username}</div>
-                    <div className="text-xs text-gray-500">{user.sessions} ta sessiya</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: 'var(--c-text)', fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.username}</div>
+                    <div style={{ color: 'var(--c-muted)', fontSize: 11 }}>{user.sessions} ta sessiya</div>
                   </div>
-                  <div className="text-xs text-blue-400 font-medium">{user.territories} ta hudud</div>
+                  <div style={{ fontSize: 12, color: 'var(--c-blue)', fontWeight: 600 }}>{user.territories} ta</div>
                 </div>
               ))}
             </div>
           </div>
         )}
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
 
-// Demo ma'lumot generatori (API ishlamasa)
 function generateDemoData(range) {
   const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
   const userGrowth = [];
   const dailyActivity = [];
   let total = 120;
-
   for (let i = days; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
+    const d = new Date(); d.setDate(d.getDate() - i);
     const date = `${d.getMonth() + 1}/${d.getDate()}`;
-    const newUsers = Math.floor(Math.random() * 15) + 2;
-    total += newUsers;
-    userGrowth.push({ date, total, new: newUsers });
-    dailyActivity.push({
-      date,
-      sessions: Math.floor(Math.random() * 80) + 20,
-      captures: Math.floor(Math.random() * 50) + 10,
-    });
+    const newU = Math.floor(Math.random() * 12) + 2;
+    total += newU;
+    userGrowth.push({ date, total, new: newU });
+    dailyActivity.push({ date, sessions: Math.floor(Math.random() * 70) + 20, captures: Math.floor(Math.random() * 40) + 10 });
   }
-
   return {
-    summary: {
-      newUsers: 87, newUsersChange: 12,
-      sessions: 1240, sessionsChange: 8,
-      captures: 3560, capturesChange: 15,
-      totalDistance: 4820000, distanceChange: 20,
-    },
-    userGrowth,
-    dailyActivity,
+    summary: { newUsers: 87, newUsersChange: 12, sessions: 1240, sessionsChange: 8, captures: 3560, capturesChange: 15, totalDistance: 4820000, distanceChange: 20 },
+    userGrowth, dailyActivity,
     regionDistribution: [
-      { name: 'tashkent', value: 145 },
-      { name: 'samarkand', value: 78 },
-      { name: 'fergana', value: 65 },
-      { name: 'andijan', value: 54 },
-      { name: 'bukhara', value: 38 },
-      { name: 'namangan', value: 32 },
+      { name: 'tashkent', value: 145 }, { name: 'samarkand', value: 78 },
+      { name: 'fergana', value: 65 }, { name: 'andijan', value: 54 },
+      { name: 'bukhara', value: 38 }, { name: 'namangan', value: 32 },
     ],
     topUsers: Array.from({ length: 6 }, (_, i) => ({
       id: i,

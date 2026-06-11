@@ -1,31 +1,29 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Medal, RefreshCw, BarChart2 } from 'lucide-react';
+import { Trophy, RefreshCw, BarChart2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import apiService from '../../services/api.service';
+import { pageTitle, pageSubtitle } from '../../components/ui/shared.jsx';
 
-// Kategoriyalar
 const CATEGORIES = [
-  { value: 'territories', label: '🏴 Hududlar', unit: 'ta', color: '#3B82F6' },
-  { value: 'distance', label: '🏃 Masofa', unit: 'km', color: '#10B981' },
-  { value: 'explored', label: '🗺️ Kashf etilgan', unit: 'ta', color: '#F59E0B' },
-  { value: 'xp', label: '⭐ XP', unit: '', color: '#8B5CF6' },
+  { value: 'territories', label: '🏴 Hududlar',     unit: 'ta',  color: '#3b82f6' },
+  { value: 'distance',    label: '🏃 Masofa',        unit: 'km',  color: '#22c55e' },
+  { value: 'explored',    label: '🗺️ Kashf etilgan', unit: 'ta',  color: '#f59e0b' },
+  { value: 'xp',          label: '⭐ XP',             unit: '',    color: '#a855f7' },
 ];
 
-// Medal ranglari
-function RankMedal({ rank }) {
-  if (rank === 1) return <span className="text-yellow-400 font-bold text-lg">🥇</span>;
-  if (rank === 2) return <span className="text-gray-300 font-bold text-lg">🥈</span>;
-  if (rank === 3) return <span className="text-orange-400 font-bold text-lg">🥉</span>;
-  return <span className="text-gray-500 text-sm font-mono w-6 text-center">{rank}</span>;
+function RankBadge({ rank }) {
+  if (rank === 1) return <span style={{ fontSize: 20 }}>🥇</span>;
+  if (rank === 2) return <span style={{ fontSize: 20 }}>🥈</span>;
+  if (rank === 3) return <span style={{ fontSize: 20 }}>🥉</span>;
+  return <span style={{ color: 'var(--c-muted)', fontSize: 13, fontFamily: 'monospace', width: 24, textAlign: 'center', display: 'inline-block' }}>{rank}</span>;
 }
 
-// Custom tooltip uchun recharts
-function CustomTooltip({ active, payload, label, unit }) {
+function ChartTooltip({ active, payload, label, unit }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-dark-800 border border-dark-600 rounded-lg px-3 py-2 text-xs">
-      <p className="text-gray-300 mb-1">{label}</p>
-      <p className="text-white font-bold">{payload[0].value?.toLocaleString()} {unit}</p>
+    <div style={{ background: 'var(--c-panel)', border: '1px solid var(--c-border2)', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
+      <p style={{ color: 'var(--c-text2)', margin: '0 0 4px' }}>{label}</p>
+      <p style={{ color: 'var(--c-text)', fontWeight: 700, margin: 0 }}>{payload[0].value?.toLocaleString()} {unit}</p>
     </div>
   );
 }
@@ -36,146 +34,141 @@ export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const activeCategory = CATEGORIES.find((c) => c.value === category);
+  const active = CATEGORIES.find((c) => c.value === category);
 
-  // Leaderboard ma'lumotlarini yuklash
   const fetchLeaderboard = async (silent = false) => {
-    if (!silent) setLoading(true);
-    else setRefreshing(true);
+    if (!silent) setLoading(true); else setRefreshing(true);
     try {
       const res = await apiService.get('/admin/leaderboard', { params: { category, limit: 20 } });
       setData(res.data.data.rankings || []);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+    } catch {}
+    finally { setLoading(false); setRefreshing(false); }
   };
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [category]);
+  useEffect(() => { fetchLeaderboard(); }, [category]);
 
-  // Chart uchun ma'lumot tayyorlash (top 10)
   const chartData = data.slice(0, 10).map((item) => ({
-    name: item.username?.slice(0, 10) || '—',
-    value: category === 'distance'
-      ? Math.round((item.value || 0) / 1000)
-      : (item.value || 0),
+    name: item.username?.slice(0, 8) || '—',
+    value: category === 'distance' ? Math.round((item.value || 0) / 1000) : (item.value || 0),
   }));
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 className="text-2xl font-bold text-white">Reyting (Leaderboard)</h1>
-          <p className="text-gray-400 text-sm mt-1">Global reyting va kategoriyalar bo'yicha statistika</p>
+          <h1 style={pageTitle}>Reyting (Leaderboard)</h1>
+          <p style={pageSubtitle}>Global reyting va kategoriyalar bo'yicha statistika</p>
         </div>
-        <button
-          onClick={() => fetchLeaderboard(true)}
-          disabled={refreshing}
-          className="flex items-center gap-2 btn-secondary"
-        >
-          <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
+        <button onClick={() => fetchLeaderboard(true)} disabled={refreshing} className="btn-secondary">
+          <RefreshCw size={14} style={{ animation: refreshing ? 'spin 0.7s linear infinite' : 'none' }} />
           Yangilash
         </button>
       </div>
 
-      {/* Kategoriya tablar */}
-      <div className="flex gap-2 flex-wrap">
+      {/* Category tabs */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {CATEGORIES.map((cat) => (
           <button
             key={cat.value}
             onClick={() => setCategory(cat.value)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              category === cat.value
-                ? 'bg-blue-600 text-white'
-                : 'bg-dark-700 border border-dark-600 text-gray-400 hover:text-white'
-            }`}
+            style={{
+              padding: '9px 18px', borderRadius: 9, fontSize: 13, fontWeight: 500,
+              cursor: 'pointer', border: '1px solid',
+              background: category === cat.value ? cat.color : 'var(--c-panel)',
+              color: category === cat.value ? '#fff' : 'var(--c-text2)',
+              borderColor: category === cat.value ? cat.color : 'var(--c-border2)',
+              transition: 'all 0.15s',
+              boxShadow: category === cat.value ? `0 0 12px ${cat.color}44` : 'none',
+            }}
           >
             {cat.label}
           </button>
         ))}
       </div>
 
-      {/* Chart */}
+      {/* Bar chart */}
       {!loading && chartData.length > 0 && (
         <div className="card">
-          <div className="flex items-center gap-2 mb-4">
-            <BarChart2 size={18} className="text-blue-400" />
-            <h3 className="font-semibold text-white">Top 10 — {activeCategory?.label}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <BarChart2 size={16} style={{ color: active?.color }} />
+            <span style={{ color: 'var(--c-text)', fontWeight: 600, fontSize: 14 }}>Top 10 — {active?.label}</span>
           </div>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={200}>
             <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9CA3AF' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} />
-              <Tooltip
-                content={<CustomTooltip unit={activeCategory?.unit} />}
-                cursor={{ fill: 'rgba(59,130,246,0.08)' }}
-              />
-              <Bar dataKey="value" fill={activeCategory?.color} radius={[4, 4, 0, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--c-border)" />
+              <XAxis dataKey="name" tick={{ fontSize: 11, fill: 'var(--c-muted)' }} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--c-muted)' }} />
+              <Tooltip content={<ChartTooltip unit={active?.unit} />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+              <Bar dataKey="value" fill={active?.color} radius={[5, 5, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      {/* Jadval */}
-      <div className="card overflow-hidden p-0">
-        <div className="px-5 py-4 border-b border-dark-600 flex items-center justify-between">
-          <h3 className="font-semibold text-white flex items-center gap-2">
-            <Trophy size={16} className="text-yellow-400" />
-            {activeCategory?.label} reytingi
-          </h3>
-          <span className="text-xs text-gray-500">Top 20</span>
+      {/* List */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--c-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Trophy size={15} style={{ color: 'var(--c-yellow)' }} />
+            <span style={{ color: 'var(--c-text)', fontWeight: 600, fontSize: 14 }}>{active?.label} reytingi</span>
+          </div>
+          <span style={{ color: 'var(--c-muted)', fontSize: 12 }}>Top 20</span>
         </div>
 
         {loading ? (
-          <div className="p-4 space-y-2">
-            {Array(8).fill(0).map((_, i) => (
-              <div key={i} className="h-12 bg-dark-700 rounded animate-pulse" />
+          <div style={{ padding: 20 }}>
+            {Array(6).fill(0).map((_, i) => (
+              <div key={i} className="animate-pulse" style={{ height: 48, borderRadius: 8, marginBottom: 8 }} />
             ))}
           </div>
         ) : data.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <Trophy size={32} className="mx-auto mb-2 text-gray-600" />
+          <div style={{ textAlign: 'center', padding: '50px 20px', color: 'var(--c-muted)' }}>
+            <Trophy size={30} style={{ display: 'block', margin: '0 auto 10px' }} />
             Ma'lumot mavjud emas
           </div>
         ) : (
-          <div className="divide-y divide-dark-700">
+          <div>
             {data.map((item, idx) => (
               <div
                 key={item.userId || idx}
-                className={`flex items-center gap-4 px-5 py-3 hover:bg-dark-700/50 transition-colors ${
-                  idx < 3 ? 'bg-dark-700/20' : ''
-                }`}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  padding: '12px 20px',
+                  borderBottom: '1px solid var(--c-border)',
+                  background: idx < 3 ? `${active?.color}08` : 'transparent',
+                  transition: 'background 0.1s',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = idx < 3 ? `${active?.color}08` : 'transparent'}
               >
-                <div className="w-8 flex justify-center">
-                  <RankMedal rank={idx + 1} />
+                <div style={{ width: 28, display: 'flex', justifyContent: 'center' }}>
+                  <RankBadge rank={idx + 1} />
                 </div>
-
-                {/* Avatar */}
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                <div style={{
+                  width: 34, height: 34, borderRadius: '50%',
+                  background: `linear-gradient(135deg, ${active?.color}88, ${active?.color}44)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', fontWeight: 700, fontSize: 13, flexShrink: 0,
+                }}>
                   {item.username?.[0]?.toUpperCase() || '?'}
                 </div>
-
-                {/* Ism */}
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-white truncate">{item.username || '—'}</div>
-                  <div className="text-xs text-gray-500 capitalize">{item.region || 'Noma\'lum viloyat'}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: 'var(--c-text)', fontWeight: 600, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {item.username || '—'}
+                  </div>
+                  <div style={{ color: 'var(--c-muted)', fontSize: 11, textTransform: 'capitalize' }}>
+                    {item.region || "Noma'lum viloyat"}
+                  </div>
                 </div>
-
-                {/* Qiymat */}
-                <div className="text-right">
-                  <div className="text-sm font-bold" style={{ color: activeCategory?.color }}>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div style={{ color: active?.color, fontWeight: 700, fontSize: 15 }}>
                     {category === 'distance'
                       ? `${((item.value || 0) / 1000).toFixed(1)} km`
-                      : `${(item.value || 0).toLocaleString()} ${activeCategory?.unit}`}
+                      : `${(item.value || 0).toLocaleString()} ${active?.unit}`}
                   </div>
                   {item.change !== undefined && (
-                    <div className={`text-xs ${item.change > 0 ? 'text-green-400' : item.change < 0 ? 'text-red-400' : 'text-gray-500'}`}>
+                    <div style={{ fontSize: 11, color: item.change > 0 ? 'var(--c-green)' : item.change < 0 ? 'var(--c-red)' : 'var(--c-muted)' }}>
                       {item.change > 0 ? `↑${item.change}` : item.change < 0 ? `↓${Math.abs(item.change)}` : '—'}
                     </div>
                   )}
@@ -185,6 +178,7 @@ export default function LeaderboardPage() {
           </div>
         )}
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

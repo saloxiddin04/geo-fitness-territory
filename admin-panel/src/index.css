@@ -1,136 +1,191 @@
 @import "tailwindcss";
 
-@theme {
-  --color-dark-600: #30363d;
-  --color-dark-700: #21262d;
-  --color-dark-800: #161b22;
-  --color-dark-900: #0d1117;
-}
-
+/* ============================================================
+   COLOR SYSTEM
+   ============================================================ */
 :root {
-  --bg-primary: #0D1117;
-  --bg-secondary: #161B22;
-  --bg-tertiary: #21262D;
-  --border-color: #30363D;
-  --text-primary: #F0F6FC;
-  --text-secondary: #8B949E;
-  --text-muted: #484F58;
-  --accent-green: #3FB950;
-  --accent-red: #F85149;
-  --accent-blue: #58A6FF;
-  --accent-yellow: #D29922;
-  --accent-purple: #BC8CFF;
+  --c-bg:       #0b0f14;
+  --c-surface:  #111720;
+  --c-panel:    #161d27;
+  --c-border:   #1f2937;
+  --c-border2:  #2d3748;
+
+  --c-text:     #f1f5f9;
+  --c-text2:    #94a3b8;
+  --c-muted:    #475569;
+
+  --c-blue:     #3b82f6;
+  --c-blue-dim: rgba(59,130,246,0.12);
+  --c-green:    #22c55e;
+  --c-green-dim:rgba(34,197,94,0.12);
+  --c-red:      #ef4444;
+  --c-red-dim:  rgba(239,68,68,0.12);
+  --c-yellow:   #f59e0b;
+  --c-yellow-dim:rgba(245,158,11,0.12);
+  --c-purple:   #a855f7;
+  --c-purple-dim:rgba(168,85,247,0.12);
 }
 
-* {
-  box-sizing: border-box;
-}
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--bg-tertiary);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--border-color);
-}
-
-.card {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 16px;
-}
-
-.btn-primary {
-  background-color: var(--accent-green);
-  color: #000;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.btn-primary:hover {
-  opacity: 0.85;
-}
-
-.btn-danger {
-  background-color: var(--accent-red);
-  color: #fff;
-}
-
-.input-field {
-  background-color: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  color: var(--text-primary);
-  padding: 8px 12px;
-  width: 100%;
-  outline: none;
+  background-color: var(--c-bg);
+  color: var(--c-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
   font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
 }
 
-.input-field:focus {
-  border-color: var(--accent-green);
-}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--c-border2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--c-muted); }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
+/* ============================================================
+   DARK UTILITY CLASSES (Tailwind v4 @theme workaround)
+   ============================================================ */
+.bg-dark-600  { background-color: var(--c-border2) !important; }
+.bg-dark-700  { background-color: var(--c-panel) !important; }
+.bg-dark-800  { background-color: var(--c-surface) !important; }
+.bg-dark-900  { background-color: var(--c-bg) !important; }
+
+.border-dark-600 { border-color: var(--c-border2) !important; }
+.border-dark-700 { border-color: var(--c-panel) !important; }
+
+.text-dark-600 { color: var(--c-muted) !important; }
+
+/* ============================================================
+   CARD
+   ============================================================ */
+.card {
+  background-color: var(--c-surface);
+  border: 1px solid var(--c-border);
   border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 20px;
+  transition: border-color 0.2s;
 }
 
-.badge-green { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); }
-.badge-red { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
-.badge-yellow { background: rgba(210, 153, 34, 0.15); color: var(--accent-yellow); }
-.badge-blue { background: rgba(88, 166, 255, 0.15); color: var(--accent-blue); }
-.badge-purple { background: rgba(188, 140, 255, 0.15); color: var(--accent-purple); }
+.card:hover {
+  border-color: var(--c-border2);
+}
 
-/* Tailwind-compatible badge variants */
-.badge-success { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 1px solid rgba(63,185,80,0.25); }
-.badge-danger  { background: rgba(248, 81, 73, 0.15);  color: #f85149; border: 1px solid rgba(248,81,73,0.25); }
-.badge-warning { background: rgba(210, 153, 34, 0.15); color: #d29922; border: 1px solid rgba(210,153,34,0.25); }
-.badge-info    { background: rgba(88, 166, 255, 0.15); color: #58a6ff; border: 1px solid rgba(88,166,255,0.25); }
-
-.btn-secondary {
-  background-color: var(--bg-tertiary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  background: var(--c-blue);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.btn-primary:hover:not(:disabled) { opacity: 0.88; }
+.btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  color: var(--c-text2);
+  border: 1px solid var(--c-border2);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--c-blue);
+  color: var(--c-text);
+  background: var(--c-blue-dim);
+}
+.btn-secondary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--c-red-dim);
+  color: var(--c-red);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-danger:hover:not(:disabled) { background: rgba(239,68,68,0.2); }
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
-.btn-secondary:hover {
-  border-color: var(--accent-blue);
-  color: var(--text-primary);
+.badge-success  { background: var(--c-green-dim);  color: var(--c-green);  border: 1px solid rgba(34,197,94,0.25); }
+.badge-danger   { background: var(--c-red-dim);    color: var(--c-red);    border: 1px solid rgba(239,68,68,0.25); }
+.badge-warning  { background: var(--c-yellow-dim); color: var(--c-yellow); border: 1px solid rgba(245,158,11,0.25); }
+.badge-info     { background: var(--c-blue-dim);   color: var(--c-blue);   border: 1px solid rgba(59,130,246,0.25); }
+.badge-purple   { background: var(--c-purple-dim); color: var(--c-purple); border: 1px solid rgba(168,85,247,0.25); }
+
+/* Legacy aliases */
+.badge-green  { background: var(--c-green-dim);  color: var(--c-green); }
+.badge-red    { background: var(--c-red-dim);    color: var(--c-red); }
+.badge-yellow { background: var(--c-yellow-dim); color: var(--c-yellow); }
+.badge-blue   { background: var(--c-blue-dim);   color: var(--c-blue); }
+
+/* ============================================================
+   INPUT FIELDS
+   ============================================================ */
+.input-field {
+  background: var(--c-panel);
+  border: 1px solid var(--c-border2);
+  border-radius: 8px;
+  color: var(--c-text);
+  padding: 9px 12px;
+  width: 100%;
+  outline: none;
+  font-size: 13px;
+  transition: border-color 0.15s;
+}
+.input-field::placeholder { color: var(--c-muted); }
+.input-field:focus { border-color: var(--c-blue); }
+
+/* ============================================================
+   LOADING SKELETON
+   ============================================================ */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.animate-pulse {
+  background: linear-gradient(90deg, var(--c-panel) 25%, var(--c-border) 50%, var(--c-panel) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite;
 }

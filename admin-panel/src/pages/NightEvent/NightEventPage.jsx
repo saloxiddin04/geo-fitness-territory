@@ -2,17 +2,16 @@ import { useState, useEffect } from 'react';
 import { Moon, Sun, Play, Square, Clock, Zap, Calendar, RefreshCw } from 'lucide-react';
 import apiService from '../../services/api.service';
 import socketService from '../../services/socket.service';
+import { pageTitle, pageSubtitle, Toast } from '../../components/ui/shared.jsx';
 
-// Vaqt formatlash
-function formatTime(date) {
-  if (!date) return '—';
-  return new Date(date).toLocaleString('uz-UZ');
-}
+const inputStyle = {
+  width: '100%', background: 'var(--c-panel)', border: '1px solid var(--c-border2)',
+  borderRadius: 8, color: 'var(--c-text)', padding: '8px 12px', fontSize: 13, outline: 'none',
+};
+const labelStyle = { display: 'block', color: 'var(--c-text2)', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 };
 
-// Countdown komponenti
-function Countdown({ targetDate, label }) {
+function Countdown({ targetDate }) {
   const [remaining, setRemaining] = useState('');
-
   useEffect(() => {
     if (!targetDate) return;
     const update = () => {
@@ -27,44 +26,37 @@ function Countdown({ targetDate, label }) {
     const t = setInterval(update, 1000);
     return () => clearInterval(t);
   }, [targetDate]);
-
-  return (
-    <div className="text-center">
-      <div className="text-xs text-gray-500 mb-1">{label}</div>
-      <div className="text-lg font-mono font-bold text-white">{remaining || '—'}</div>
-    </div>
-  );
+  return <div style={{ fontSize: 18, fontFamily: 'monospace', fontWeight: 700, color: 'var(--c-text)' }}>{remaining || '—'}</div>;
 }
 
-// Jadval elementi
 function ScheduleItem({ item, index }) {
-  const isPast = new Date(item.endTime) < Date.now();
-  const isActive = new Date(item.startTime) <= Date.now() && new Date(item.endTime) >= Date.now();
+  const now = Date.now();
+  const isPast = new Date(item.endTime) < now;
+  const isActive = new Date(item.startTime) <= now && new Date(item.endTime) >= now;
+
+  let bg = 'var(--c-panel)';
+  let borderColor = 'var(--c-border2)';
+  if (isActive) { bg = 'rgba(59,130,246,0.07)'; borderColor = 'rgba(59,130,246,0.3)'; }
+  if (isPast) { bg = 'rgba(255,255,255,0.015)'; }
 
   return (
-    <div className={`flex items-center gap-4 p-4 rounded-lg border transition-colors ${
-      isActive
-        ? 'bg-blue-500/10 border-blue-500/30'
-        : isPast
-        ? 'bg-dark-700/30 border-dark-600/50 opacity-50'
-        : 'bg-dark-700/50 border-dark-600'
-    }`}>
-      <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-dark-600 text-gray-300 shrink-0">
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', borderRadius: 10, background: bg, border: `1px solid ${borderColor}`, opacity: isPast ? 0.5 : 1 }}>
+      <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--c-border2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--c-text2)', flexShrink: 0 }}>
         {index + 1}
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className="text-sm font-medium text-white">{item.name || `Night Event #${index + 1}`}</span>
-          {isActive && <span className="badge badge-success text-xs">Faol</span>}
-          {isPast && <span className="text-xs text-gray-500">Tugagan</span>}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+          <span style={{ color: 'var(--c-text)', fontWeight: 600, fontSize: 13 }}>{item.name || `Night Event #${index + 1}`}</span>
+          {isActive && <span className="badge badge-success">Faol</span>}
+          {isPast && <span style={{ color: 'var(--c-muted)', fontSize: 11 }}>Tugagan</span>}
         </div>
-        <div className="text-xs text-gray-500">
-          {formatTime(item.startTime)} — {formatTime(item.endTime)}
+        <div style={{ color: 'var(--c-muted)', fontSize: 11 }}>
+          {item.startTime ? new Date(item.startTime).toLocaleString('uz-UZ') : '—'} — {item.endTime ? new Date(item.endTime).toLocaleString('uz-UZ') : '—'}
         </div>
       </div>
-      <div className="text-right shrink-0">
-        <div className="text-xs text-yellow-400 font-medium">{item.xpMultiplier || 2}x XP</div>
-        <div className="text-xs text-gray-500">{item.region || 'Barcha viloyatlar'}</div>
+      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+        <div style={{ color: 'var(--c-yellow)', fontSize: 13, fontWeight: 600 }}>{item.xpMultiplier || 2}x XP</div>
+        <div style={{ color: 'var(--c-muted)', fontSize: 11, textTransform: 'capitalize' }}>{item.region || 'Barcha viloyatlar'}</div>
       </div>
     </div>
   );
@@ -76,292 +68,187 @@ export default function NightEventPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [manualConfig, setManualConfig] = useState({ duration: 60, xpMultiplier: 2, region: '', name: "Qo'lda event" });
 
-  // Manual event sozlamalari
-  const [manualConfig, setManualConfig] = useState({
-    duration: 60,       // daqiqa
-    xpMultiplier: 2,
-    region: '',
-    name: 'Qo\'lda event',
-  });
+  const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3500); };
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
-
-  // Status va jadval yuklash
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statusRes, scheduleRes] = await Promise.all([
+      const [s, sc] = await Promise.all([
         apiService.get('/admin/night-event/status'),
         apiService.get('/admin/night-event/schedule'),
       ]);
-      setStatus(statusRes.data.data);
-      setSchedule(scheduleRes.data.data?.schedule || []);
-    } catch {
-      // silent
-    } finally {
-      setLoading(false);
-    }
+      setStatus(s.data.data);
+      setSchedule(sc.data.data?.schedule || []);
+    } catch {} finally { setLoading(false); }
   };
 
   useEffect(() => {
     fetchData();
-
-    // Socket orqali real-time yangilanish
     const socket = socketService.getSocket();
     if (socket) {
-      socket.on('night_event_started', (data) => {
-        setStatus((prev) => ({ ...prev, isActive: true, ...data }));
-        showToast('🌙 Night Event boshlandi!');
-      });
-      socket.on('night_event_ended', () => {
-        setStatus((prev) => ({ ...prev, isActive: false }));
-        showToast('Night Event tugadi');
-      });
+      socket.on('night_event_started', (data) => { setStatus((p) => ({ ...p, isActive: true, ...data })); showToast('🌙 Night Event boshlandi!'); });
+      socket.on('night_event_ended', () => { setStatus((p) => ({ ...p, isActive: false })); showToast('Night Event tugadi'); });
     }
-
-    return () => {
-      if (socket) {
-        socket.off('night_event_started');
-        socket.off('night_event_ended');
-      }
-    };
+    return () => { if (socket) { socket.off('night_event_started'); socket.off('night_event_ended'); } };
   }, []);
 
-  // Eventni qo'lda boshlash
   const handleStart = async () => {
     setActionLoading(true);
     try {
       await apiService.post('/admin/night-event/start', manualConfig);
       showToast('🌙 Night Event muvaffaqiyatli boshlandi!');
       fetchData();
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Boshlashda xatolik', 'error');
-    } finally {
-      setActionLoading(false);
-    }
+    } catch (err) { showToast(err.response?.data?.message || 'Boshlashda xatolik', 'error'); }
+    finally { setActionLoading(false); }
   };
 
-  // Eventni to'xtatish
   const handleStop = async () => {
-    if (!window.confirm('Night Eventni to\'xtatmoqchimisiz?')) return;
+    if (!window.confirm("Night Eventni to'xtatmoqchimisiz?")) return;
     setActionLoading(true);
     try {
       await apiService.post('/admin/night-event/stop');
-      showToast('Night Event to\'xtatildi');
+      showToast("Night Event to'xtatildi");
       fetchData();
-    } catch (err) {
-      showToast(err.response?.data?.message || 'To\'xtatishda xatolik', 'error');
-    } finally {
-      setActionLoading(false);
-    }
+    } catch (err) { showToast(err.response?.data?.message || "To'xtatishda xatolik", 'error'); }
+    finally { setActionLoading(false); }
   };
 
   const isActive = status?.isActive;
 
   return (
-    <div className="space-y-6">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 className="text-2xl font-bold text-white">Night Event boshqaruvi</h1>
-          <p className="text-gray-400 text-sm mt-1">Kechki maxsus hodisalarni boshqarish va rejalashtirish</p>
+          <h1 style={pageTitle}>Night Event boshqaruvi</h1>
+          <p style={pageSubtitle}>Kechki maxsus hodisalarni boshqarish va rejalashtirish</p>
         </div>
-        <button onClick={fetchData} className="flex items-center gap-2 btn-secondary">
-          <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-          Yangilash
+        <button onClick={fetchData} className="btn-secondary">
+          <RefreshCw size={14} style={{ animation: loading ? 'spin 0.7s linear infinite' : 'none' }} /> Yangilash
         </button>
       </div>
 
-      {/* Joriy holat */}
-      <div className={`card border-2 transition-all ${
-        isActive ? 'border-blue-500/50 bg-blue-500/5' : 'border-dark-600'
-      }`}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className={`p-3 rounded-xl ${isActive ? 'bg-blue-500/20' : 'bg-dark-700'}`}>
-              {isActive ? (
-                <Moon size={24} className="text-blue-400" />
-              ) : (
-                <Sun size={24} className="text-gray-400" />
-              )}
+      {/* Current status */}
+      <div className="card" style={{ border: `2px solid ${isActive ? 'rgba(59,130,246,0.4)' : 'var(--c-border)'}`, background: isActive ? 'rgba(59,130,246,0.04)' : 'var(--c-surface)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isActive ? 20 : 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ padding: 12, borderRadius: 12, background: isActive ? 'rgba(59,130,246,0.15)' : 'var(--c-panel)', display: 'flex' }}>
+              {isActive ? <Moon size={24} style={{ color: 'var(--c-blue)' }} /> : <Sun size={24} style={{ color: 'var(--c-muted)' }} />}
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">
+              <h2 style={{ color: 'var(--c-text)', fontSize: 16, fontWeight: 700, margin: '0 0 4px' }}>
                 {isActive ? '🌙 Night Event Faol' : '☀️ Oddiy Rejim'}
               </h2>
-              <p className="text-sm text-gray-400">
-                {isActive ? status?.name || 'Kechki maxsus rejim' : 'Hech qanday aktiv event yo\'q'}
+              <p style={{ color: 'var(--c-muted)', fontSize: 13, margin: 0 }}>
+                {isActive ? (status?.name || 'Kechki maxsus rejim') : "Hech qanday aktiv event yo'q"}
               </p>
             </div>
           </div>
-
           {isActive && (
-            <div className={`px-3 py-1.5 rounded-full text-sm font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center gap-1.5`}>
-              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px', borderRadius: 20, background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)', color: 'var(--c-blue)', fontSize: 13, fontWeight: 600 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--c-blue)', animation: 'pulse 1.5s ease-in-out infinite' }} />
               Faol
             </div>
           )}
         </div>
 
-        {/* Aktiv event tafsilotlari */}
         {isActive && status && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            <div className="bg-dark-800 rounded-lg p-3 text-center">
-              <Zap size={16} className="text-yellow-400 mx-auto mb-1" />
-              <div className="text-xl font-bold text-yellow-400">{status.xpMultiplier || 2}x</div>
-              <div className="text-xs text-gray-500">XP Multiplikator</div>
-            </div>
-            <div className="bg-dark-800 rounded-lg p-3 text-center">
-              <Clock size={16} className="text-blue-400 mx-auto mb-1" />
-              <Countdown targetDate={status.endTime} label="Qolgan vaqt" />
-            </div>
-            <div className="bg-dark-800 rounded-lg p-3 text-center">
-              <div className="text-xs text-gray-500 mb-1">Boshlangan</div>
-              <div className="text-sm font-medium text-white">
-                {status.startTime ? new Date(status.startTime).toLocaleTimeString('uz-UZ') : '—'}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 12, marginBottom: 16 }}>
+            {[
+              { icon: <Zap size={15} style={{ color: 'var(--c-yellow)' }} />, label: 'XP Multiplikator', value: <span style={{ color: 'var(--c-yellow)', fontWeight: 700, fontSize: 20 }}>{status.xpMultiplier || 2}x</span> },
+              { icon: <Clock size={15} style={{ color: 'var(--c-blue)' }} />, label: 'Qolgan vaqt', value: <Countdown targetDate={status.endTime} /> },
+              { icon: null, label: 'Boshlangan', value: <span style={{ color: 'var(--c-text)', fontSize: 13, fontWeight: 600 }}>{status.startTime ? new Date(status.startTime).toLocaleTimeString('uz-UZ') : '—'}</span> },
+              { icon: null, label: 'Viloyat', value: <span style={{ color: 'var(--c-text)', fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>{status.region || 'Barcha'}</span> },
+            ].map((item, i) => (
+              <div key={i} style={{ background: 'var(--c-panel)', borderRadius: 10, padding: '12px', textAlign: 'center' }}>
+                {item.icon && <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>{item.icon}</div>}
+                <div style={{ marginBottom: 4 }}>{item.value}</div>
+                <div style={{ color: 'var(--c-muted)', fontSize: 11 }}>{item.label}</div>
               </div>
-            </div>
-            <div className="bg-dark-800 rounded-lg p-3 text-center">
-              <div className="text-xs text-gray-500 mb-1">Viloyat</div>
-              <div className="text-sm font-medium text-white capitalize">
-                {status.region || 'Barcha'}
-              </div>
-            </div>
+            ))}
           </div>
         )}
 
-        {/* Amallar */}
-        <div className="flex gap-3">
-          {isActive ? (
-            <button
-              onClick={handleStop}
-              disabled={actionLoading}
-              className="flex items-center gap-2 bg-red-600/20 hover:bg-red-600/30 border border-red-500/30 text-red-400 px-4 py-2 rounded-lg text-sm transition-colors disabled:opacity-50"
-            >
-              <Square size={15} />
-              {actionLoading ? 'To\'xtatilmoqda...' : 'Eventni to\'xtatish'}
-            </button>
-          ) : null}
-        </div>
+        {isActive && (
+          <button onClick={handleStop} disabled={actionLoading}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--c-red)', padding: '9px 18px', borderRadius: 9, fontSize: 13, cursor: actionLoading ? 'not-allowed' : 'pointer', opacity: actionLoading ? 0.6 : 1 }}
+          >
+            <Square size={14} /> {actionLoading ? "To'xtatilmoqda..." : "Eventni to'xtatish"}
+          </button>
+        )}
       </div>
 
-      {/* Qo'lda boshlash paneli */}
+      {/* Manual start panel */}
       {!isActive && (
-        <div className="card space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Play size={18} className="text-blue-400" />
-            <h2 className="text-lg font-semibold text-white">Qo'lda Night Event boshlash</h2>
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+            <Play size={16} style={{ color: 'var(--c-blue)' }} />
+            <span style={{ color: 'var(--c-text)', fontWeight: 700, fontSize: 15 }}>Qo'lda Night Event boshlash</span>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 16 }}>
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Event nomi</label>
-              <input
-                type="text"
-                value={manualConfig.name}
-                onChange={(e) => setManualConfig((p) => ({ ...p, name: e.target.value }))}
-                className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
-              />
+              <label style={labelStyle}>Event nomi</label>
+              <input type="text" style={inputStyle} value={manualConfig.name} onChange={(e) => setManualConfig((p) => ({ ...p, name: e.target.value }))} />
             </div>
-
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Davomiylik (daqiqa)</label>
-              <input
-                type="number"
-                min={10}
-                max={480}
-                value={manualConfig.duration}
-                onChange={(e) => setManualConfig((p) => ({ ...p, duration: Number(e.target.value) }))}
-                className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
-              />
+              <label style={labelStyle}>Davomiylik (daqiqa)</label>
+              <input type="number" min={10} max={480} style={inputStyle} value={manualConfig.duration} onChange={(e) => setManualConfig((p) => ({ ...p, duration: Number(e.target.value) }))} />
             </div>
-
             <div>
-              <label className="block text-xs text-gray-400 mb-1.5">XP Multiplikator</label>
-              <select
-                value={manualConfig.xpMultiplier}
-                onChange={(e) => setManualConfig((p) => ({ ...p, xpMultiplier: Number(e.target.value) }))}
-                className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
-              >
-                {[1.5, 2, 2.5, 3, 4, 5].map((v) => (
-                  <option key={v} value={v}>{v}x XP</option>
+              <label style={labelStyle}>XP Multiplikator</label>
+              <select style={inputStyle} value={manualConfig.xpMultiplier} onChange={(e) => setManualConfig((p) => ({ ...p, xpMultiplier: Number(e.target.value) }))}>
+                {[1.5, 2, 2.5, 3, 4, 5].map((v) => <option key={v} value={v}>{v}x XP</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={labelStyle}>Viloyat (ixtiyoriy)</label>
+              <select style={inputStyle} value={manualConfig.region} onChange={(e) => setManualConfig((p) => ({ ...p, region: e.target.value }))}>
+                <option value="">Barcha viloyatlar</option>
+                {['tashkent', 'samarkand', 'bukhara', 'andijan', 'fergana', 'namangan'].map((r) => (
+                  <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
                 ))}
               </select>
             </div>
-
-            <div>
-              <label className="block text-xs text-gray-400 mb-1.5">Viloyat (ixtiyoriy)</label>
-              <select
-                value={manualConfig.region}
-                onChange={(e) => setManualConfig((p) => ({ ...p, region: e.target.value }))}
-                className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
-              >
-                <option value="">Barcha viloyatlar</option>
-                <option value="tashkent">Toshkent</option>
-                <option value="samarkand">Samarqand</option>
-                <option value="bukhara">Buxoro</option>
-                <option value="andijan">Andijon</option>
-                <option value="fergana">Farg'ona</option>
-                <option value="namangan">Namangan</option>
-              </select>
-            </div>
           </div>
-
-          <div className="flex items-center justify-between pt-2">
-            <div className="text-xs text-gray-500">
-              {manualConfig.duration} daqiqa • {manualConfig.xpMultiplier}x XP •{' '}
-              {manualConfig.region || 'Barcha viloyatlar'}
-            </div>
-            <button
-              onClick={handleStart}
-              disabled={actionLoading}
-              className="flex items-center gap-2 btn-primary disabled:opacity-50"
-            >
-              <Moon size={15} />
-              {actionLoading ? 'Boshlanmoqda...' : '🌙 Night Event boshlash'}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: 'var(--c-muted)', fontSize: 12 }}>
+              {manualConfig.duration} daqiqa • {manualConfig.xpMultiplier}x XP • {manualConfig.region || 'Barcha viloyatlar'}
+            </span>
+            <button onClick={handleStart} disabled={actionLoading} className="btn-primary" style={{ opacity: actionLoading ? 0.6 : 1 }}>
+              <Moon size={14} /> {actionLoading ? 'Boshlanmoqda...' : '🌙 Night Event boshlash'}
             </button>
           </div>
         </div>
       )}
 
-      {/* Jadval */}
+      {/* Schedule */}
       <div className="card">
-        <div className="flex items-center gap-2 mb-4">
-          <Calendar size={18} className="text-blue-400" />
-          <h3 className="font-semibold text-white">Avtomatik jadval</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          <Calendar size={16} style={{ color: 'var(--c-blue)' }} />
+          <span style={{ color: 'var(--c-text)', fontWeight: 700, fontSize: 14 }}>Avtomatik jadval</span>
         </div>
         {loading ? (
-          <div className="space-y-3">
-            {Array(4).fill(0).map((_, i) => (
-              <div key={i} className="h-16 bg-dark-700 rounded-lg animate-pulse" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {Array(3).fill(0).map((_, i) => (
+              <div key={i} className="animate-pulse" style={{ height: 64, borderRadius: 10 }} />
             ))}
           </div>
         ) : schedule.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Calendar size={28} className="mx-auto mb-2 text-gray-600" />
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--c-muted)' }}>
+            <Calendar size={28} style={{ display: 'block', margin: '0 auto 10px' }} />
             Jadval ma'lumotlari mavjud emas
           </div>
         ) : (
-          <div className="space-y-3">
-            {schedule.map((item, idx) => (
-              <ScheduleItem key={item.id || idx} item={item} index={idx} />
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {schedule.map((item, idx) => <ScheduleItem key={item.id || idx} item={item} index={idx} />)}
           </div>
         )}
       </div>
 
-      {/* Toast */}
-      {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg text-sm font-medium shadow-xl z-50 ${
-          toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
-        }`}>
-          {toast.message}
-        </div>
-      )}
+      {toast && <Toast msg={toast.msg} type={toast.type} />}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
     </div>
   );
 }
