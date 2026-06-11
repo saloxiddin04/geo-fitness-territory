@@ -67,7 +67,7 @@ const MainTabNavigator = () => {
         component={FitnessScreen}
         options={{
           tabBarLabel: 'Fitness',
-          tabBarIcon: props => <TabBarIcon name="fitness" {...props} />,
+          tabBarIcon: props => <TabBarIcon name="dumbbell" {...props} />,
         }}
       />
       <Tab.Screen
