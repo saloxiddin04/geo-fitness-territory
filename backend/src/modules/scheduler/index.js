@@ -5,9 +5,9 @@
 
 const cron = require('node-cron');
 const nightEventService = require('./jobs/nightEvent.service');
-const { prisma } = require('../../../shared/config/database.config');
-const { emitLeaderboardUpdate } = require('../../webSocket/handlers/socket.handler');
-const logger = require('../../../shared/utils/logger');
+const { prisma } = require('../../shared/config/database.config');
+const { emitLeaderboardUpdate } = require('../webSocket/handlers/socket.handler');
+const logger = require('../../shared/utils/logger');
 
 /**
  * Barcha schedulerlarni ishga tushirish

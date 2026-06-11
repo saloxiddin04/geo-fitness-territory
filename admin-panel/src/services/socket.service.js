@@ -29,6 +29,10 @@ class AdminSocketService {
     this.socket?.off(event);
   }
 
+  getSocket() {
+    return this.socket;
+  }
+
   disconnect() {
     this.socket?.disconnect();
     this.socket = null;
@@ -36,3 +40,4 @@ class AdminSocketService {
 }
 
 export const adminSocket = new AdminSocketService();
+export default adminSocket;

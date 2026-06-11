@@ -9,14 +9,14 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [postgis, uuid_ossp]
+  extensions = [postgis]
 }
 
 // ============================================================
 // USERS - Asosiy foydalanuvchilar jadvali
 // ============================================================
 model User {
-  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   username        String   @unique @db.VarChar(50)
   email           String   @unique @db.VarChar(255)
   passwordHash    String   @map("password_hash") @db.VarChar(255)
@@ -68,7 +68,7 @@ model User {
 // REFRESH_TOKENS - JWT refresh tokenlar
 // ============================================================
 model RefreshToken {
-  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId      String   @map("user_id") @db.Uuid
   token       String   @unique @db.VarChar(500)
   deviceInfo  String?  @map("device_info") @db.VarChar(255)
@@ -88,7 +88,7 @@ model RefreshToken {
 // RUNNING_SESSIONS - Yugurish sessiyalari
 // ============================================================
 model RunningSession {
-  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId          String   @map("user_id") @db.Uuid
   
   // Sessiya holati
@@ -142,7 +142,7 @@ model RunningSession {
 // RUNNING_POINTS - GPS nuqtalar (har bir sessiyaning yo'li)
 // ============================================================
 model RunningPoint {
-  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   sessionId   String   @map("session_id") @db.Uuid
   
   // GPS koordinatalar
@@ -175,7 +175,7 @@ model RunningPoint {
 // TERRITORIES - Egallangan hududlar (H3 cell asosida)
 // ============================================================
 model Territory {
-  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   h3Index         String   @unique @map("h3_index") @db.VarChar(20)
   
   // Egasi
@@ -215,7 +215,7 @@ model Territory {
 // USER_EXPLORED_CELLS - Fog of War: foydalanuvchi kashf qilgan H3 celllar
 // ============================================================
 model UserExploredCell {
-  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId      String   @map("user_id") @db.Uuid
   h3Index     String   @map("h3_index") @db.VarChar(20)
   
@@ -237,7 +237,7 @@ model UserExploredCell {
 // NOTIFICATIONS - Push notifikatsiyalar tarixi
 // ============================================================
 model Notification {
-  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId      String   @map("user_id") @db.Uuid
   senderId    String?  @map("sender_id") @db.Uuid
   
@@ -274,7 +274,7 @@ model Notification {
 // USER_STATISTICS - Foydalanuvchi umumiy statistikasi
 // ============================================================
 model UserStatistics {
-  id                    String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId                String   @unique @map("user_id") @db.Uuid
   
   // Yugurish statistikasi
@@ -310,7 +310,7 @@ model UserStatistics {
 // LEADERBOARD_CACHE - Redis orqali cache qilinadigan reyting
 // ============================================================
 model LeaderboardCache {
-  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId      String   @map("user_id") @db.Uuid
   
   // Reyting turi
@@ -342,7 +342,7 @@ model LeaderboardCache {
 // EVENT_LOGS - Tizim loglari va o'yin eventlari
 // ============================================================
 model EventLog {
-  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId      String?  @map("user_id") @db.Uuid
   sessionId   String?  @map("session_id") @db.Uuid
   
@@ -372,7 +372,7 @@ model EventLog {
 // ADMIN_USERS - Admin foydalanuvchilar (alohida jadval)
 // ============================================================
 model AdminUser {
-  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   username     String   @unique @db.VarChar(50)
   email        String   @unique @db.VarChar(255)
   passwordHash String   @map("password_hash") @db.VarChar(255)
@@ -395,7 +395,7 @@ model AdminUser {
 // SYSTEM_SETTINGS - Tizim sozlamalari (key-value)
 // ============================================================
 model SystemSetting {
-  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   key         String   @unique @db.VarChar(100)
   value       String   @db.Text
   description String?  @db.VarChar(500)

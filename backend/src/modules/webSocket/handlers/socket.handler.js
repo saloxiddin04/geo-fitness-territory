@@ -5,8 +5,8 @@
 
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
-const { getRedisClient, REDIS_KEYS, REDIS_TTL } = require('../../shared/config/redis.config');
-const logger = require('../../shared/utils/logger');
+const { getRedisClient, REDIS_KEYS, REDIS_TTL } = require('../../../shared/config/redis.config');
+const logger = require('../../../shared/utils/logger');
 
 let io;
 

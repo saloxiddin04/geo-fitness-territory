@@ -3,6 +3,7 @@
  * Boshlang'ich ma'lumotlarni yuklash
  */
 
+require("dotenv").config();
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
@@ -13,7 +14,7 @@ async function main() {
 
   // Super Admin yaratish
   const passwordHash = await bcrypt.hash('Admin@123456', 12);
-  
+
   const admin = await prisma.adminUser.upsert({
     where: { email: 'admin@geofitness.uz' },
     update: {},
@@ -54,7 +55,7 @@ async function main() {
   // Test foydalanuvchi (development uchun)
   if (process.env.NODE_ENV === 'development') {
     const userPassword = await bcrypt.hash('Test@123456', 12);
-    
+
     const testUser = await prisma.user.upsert({
       where: { email: 'test@geofitness.uz' },
       update: {},
