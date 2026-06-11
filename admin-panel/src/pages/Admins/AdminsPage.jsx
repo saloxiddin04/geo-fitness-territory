@@ -5,8 +5,12 @@ import apiService from '../../services/api.service';
 
 // Rol badge
 function RoleBadge({ role }) {
-  if (role === 'super_admin') {
+  const r = role?.toUpperCase();
+  if (r === 'SUPER_ADMIN') {
     return <span className="badge bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">Super Admin</span>;
+  }
+  if (r === 'MODERATOR') {
+    return <span className="badge badge-warning">Moderator</span>;
   }
   return <span className="badge badge-info">Admin</span>;
 }
@@ -371,7 +375,7 @@ export default function AdminsPage() {
                           >
                             <Key size={14} />
                           </button>
-                          {!isCurrent && admin.role !== 'super_admin' && (
+                          {!isCurrent && admin.role?.toUpperCase() !== 'SUPER_ADMIN' && (
                             <button
                               onClick={() => handleDelete(admin)}
                               className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
