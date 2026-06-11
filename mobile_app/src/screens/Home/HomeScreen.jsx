@@ -137,12 +137,12 @@ const HomeScreen = () => {
           </LinearGradient>
         </TouchableOpacity>
 
-        <View style={styles.actionRow}>
-          <ActionButton icon="map" title="Xarita" onPress={() => navigation.navigate('Map')} />
-          <ActionButton icon="chart-bar" title="Fitness" onPress={() => navigation.navigate('Fitness')} />
-          <ActionButton icon="trophy" title="Reyting" onPress={() => navigation.navigate('Leaderboard')} />
-          <ActionButton icon="cog" title="Sozlamalar" onPress={() => navigation.navigate('Settings')} />
-        </View>
+        {/*<View style={styles.actionRow}>*/}
+        {/*  <ActionButton icon="map" title="Xarita" onPress={() => navigation.navigate('Map')} />*/}
+        {/*  <ActionButton icon="chart-bar" title="Fitness" onPress={() => navigation.navigate('Fitness')} />*/}
+        {/*  <ActionButton icon="trophy" title="Reyting" onPress={() => navigation.navigate('Leaderboard')} />*/}
+        {/*  <ActionButton icon="cog" title="Sozlamalar" onPress={() => navigation.navigate('Settings')} />*/}
+        {/*</View>*/}
       </View>
     </LinearGradient>
   );
