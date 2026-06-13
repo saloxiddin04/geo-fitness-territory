@@ -71,7 +71,7 @@ async function getUserRank(userId, category) {
     WITH ranked AS (
       ${query}
     )
-    SELECT rank, score FROM ranked WHERE id = $1
+    SELECT rank, score FROM ranked WHERE id = $1::uuid
   `, userId);
 
   return result[0] || { rank: null, score: 0 };

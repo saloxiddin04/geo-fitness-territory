@@ -28,6 +28,9 @@ const adminRoutes = require('./modules/admin/routes/admin.routes');
 
 const app = express();
 
+// Railway va boshqa reverse proxy orqali kelgan so'rovlar uchun
+app.set('trust proxy', 1);
+
 // ============================================================
 // GLOBAL MIDDLEWARE
 // ============================================================
