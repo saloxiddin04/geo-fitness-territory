@@ -421,8 +421,9 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Masofa formatlash (m -> km)
 const formatDistance = meters => {
-  if (meters < 1000) return `${meters.toFixed(0)} m`;
-  return `${(meters / 1000).toFixed(2)} km`;
+  const m = meters || 0;
+  if (m < 1000) return `${m.toFixed(0)} m`;
+  return `${(m / 1000).toFixed(2)} km`;
 };
 
 // Vaqt formatlash (sekund -> MM:SS yoki HH:MM:SS)
@@ -704,7 +705,7 @@ const RunningScreen = ({ navigation }) => {
             />
             <MetricCard
               icon="speedometer"
-              value={`${currentSpeed.toFixed(1)} km/h`}
+              value={`${(currentSpeed || 0).toFixed(1)} km/h`}
               label="Joriy tezlik"
             />
             <MetricCard

@@ -20,10 +20,11 @@ const GPS_INTERVAL_SECONDS = 5;
  * @param {Object} startPoint - Boshlang'ich GPS nuqta { lat, lng }
  */
 async function startSession(userId, startPoint) {
-  // Foydalanuvchining faol sessiyasi borligini tekshirish
+  // Foydalanuvchining faol sessiyasi borligini tekshirish - mavjud bo'lsa qaytaramiz
   const activeSession = await getActiveSession(userId);
   if (activeSession) {
-    throw new AppError('Allaqachon faol sessiya mavjud', 409, 'SESSION_ALREADY_ACTIVE');
+    logger.info(`Faol sessiya topildi, qaytarilmoqda: ${userId} | Session: ${activeSession.id}`);
+    return activeSession;
   }
 
   // GPS koordinatalarni tekshirish

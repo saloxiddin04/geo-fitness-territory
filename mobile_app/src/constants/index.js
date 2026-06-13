@@ -6,9 +6,7 @@ const PROD_URL = 'https://discerning-mindfulness-production-6edc.up.railway.app'
 export const API_BASE_URL = `${PROD_URL}/api/v1`;
 export const SOCKET_URL = PROD_URL;
 
-// Mapbox token — https://account.mapbox.com/ dan oling, .env faylga qo'ying
-// .env: MAPBOX_PUBLIC_TOKEN=pk.your_token_here
-export const MAPBOX_PUBLIC_TOKEN = process.env.MAPBOX_PUBLIC_TOKEN || '';
+export const MAPBOX_PUBLIC_TOKEN = 'pk.eyJ1Ijoic2Fsb3hpZGRpbjIwMDQiLCJhIjoiY21xOW05ZGdiMDRiczJycXRtaTIyZWppYSJ9.4PC8oZ2x5-jtkE9pU9toEw';
 
 // H3 Grid resolution
 export const H3_RESOLUTION = 9;

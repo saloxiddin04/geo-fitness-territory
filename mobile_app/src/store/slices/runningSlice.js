@@ -102,7 +102,7 @@ const runningSlice = createSlice({
     updateLocation: (state, action) => {
       const { latitude, longitude, speed, timestamp } = action.payload;
       state.currentLocation = { latitude, longitude, timestamp };
-      state.currentSpeed = speed > 0 ? (speed * 3.6).toFixed(1) : 0; // m/s -> km/h
+      state.currentSpeed = speed > 0 ? parseFloat((speed * 3.6).toFixed(1)) : 0; // m/s -> km/h
 
       // GPS nuqtasini local state ga qo'shish
       if (state.isRunning) {
@@ -153,7 +153,9 @@ const runningSlice = createSlice({
         state.isLoading = false;
         state.isRunning = true;
         state.activeSession = action.payload.session;
-        state.startTime = Date.now();
+        state.startTime = action.payload.session?.startedAt
+          ? new Date(action.payload.session.startedAt).getTime()
+          : Date.now();
         state.gpsPoints = [];
         state.distance = 0;
         state.duration = 0;
