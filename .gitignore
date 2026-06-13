@@ -3,3 +3,7 @@ admin-panel/node_modules
 backend/node_modules
 backend/logs
 mobile_app/node_modules
+backend/.env
+backend/uploads/*
+**/google-services.json
+**/*.keystore
