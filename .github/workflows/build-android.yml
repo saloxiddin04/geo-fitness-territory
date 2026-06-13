@@ -36,6 +36,8 @@ jobs:
 
       - name: Build Debug APK
         working-directory: mobile_app/android
+        env:
+          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
