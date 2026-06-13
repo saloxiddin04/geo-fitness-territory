@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: mobile_app
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Make gradlew executable
         working-directory: mobile_app/android
