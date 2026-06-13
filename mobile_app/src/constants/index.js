@@ -2,15 +2,9 @@
 import { Platform } from 'react-native';
 
 const PROD_URL = 'https://discerning-mindfulness-production-6edc.up.railway.app';
-const DEV_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 
-export const API_BASE_URL = __DEV__
-  ? `http://${DEV_HOST}:3000/api/v1`
-  : `${PROD_URL}/api/v1`;
-
-export const SOCKET_URL = __DEV__
-  ? `http://${DEV_HOST}:3000`
-  : PROD_URL;
+export const API_BASE_URL = `${PROD_URL}/api/v1`;
+export const SOCKET_URL = PROD_URL;
 
 // Mapbox token — https://account.mapbox.com/ dan oling, .env faylga qo'ying
 // .env: MAPBOX_PUBLIC_TOKEN=pk.your_token_here
