@@ -36,13 +36,20 @@ const app = express();
 app.use(helmet());
 
 // CORS konfiguratsiyasi
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:8080',
+  'http://localhost:5173',
+  'http://localhost:5174',
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:8080',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    process.env.MOBILE_APP_URL || 'exp://localhost:8081',
-  ],
+  origin: (origin, callback) => {
+    // Mobile app va server-to-server so'rovlarda origin bo'lmaydi
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(null, false);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],

@@ -20,10 +20,11 @@ const userSocketMap = new Map();
 function initSocketServer(httpServer) {
   io = new Server(httpServer, {
     cors: {
-      origin: [
-        process.env.FRONTEND_URL || 'http://localhost:8080',
-        process.env.MOBILE_APP_URL || 'exp://localhost:8081',
-      ],
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const allowed = [process.env.FRONTEND_URL, 'http://localhost:8080'].filter(Boolean);
+        callback(null, allowed.includes(origin));
+      },
       methods: ['GET', 'POST'],
       credentials: true,
     },
