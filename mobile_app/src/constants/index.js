@@ -1,10 +1,16 @@
 // API va asosiy konstantalar
 import { Platform } from 'react-native';
 
-// Android emulator: 10.0.2.2 | iOS simulator: localhost | real device: server IP
+const PROD_URL = 'https://discerning-mindfulness-production-6edc.up.railway.app';
 const DEV_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-export const API_BASE_URL = process.env.API_BASE_URL || `http://${DEV_HOST}:3000/api/v1`;
-export const SOCKET_URL = process.env.SOCKET_URL || `http://${DEV_HOST}:3000`;
+
+export const API_BASE_URL = __DEV__
+  ? `http://${DEV_HOST}:3000/api/v1`
+  : `${PROD_URL}/api/v1`;
+
+export const SOCKET_URL = __DEV__
+  ? `http://${DEV_HOST}:3000`
+  : PROD_URL;
 
 // Mapbox token — https://account.mapbox.com/ dan oling, .env faylga qo'ying
 // .env: MAPBOX_PUBLIC_TOKEN=pk.your_token_here
