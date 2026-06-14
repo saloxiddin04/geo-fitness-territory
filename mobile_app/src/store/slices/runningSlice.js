@@ -93,6 +93,8 @@ const runningSlice = createSlice({
     historyTotal: 0,
     hasMoreHistory: true,
 
+    lastSessionResult: null,
+
     isLoading: false,
     isSendingPoints: false,
     error: null,
@@ -139,6 +141,7 @@ const runningSlice = createSlice({
       state.calories = 0;
       state.pace = 0;
       state.startTime = null;
+      state.lastSessionResult = null;
       state.error = null;
     },
   },

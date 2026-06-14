@@ -594,20 +594,22 @@ const RunningScreen = ({ navigation }) => {
         return;
       }
 
+      // Immediately dispatch startSession with fallback coords,
+      // then try to get real GPS in background
       let latitude = 41.2995;
       let longitude = 69.2401;
 
       try {
         const location = await BackgroundGeolocation.getCurrentPosition({
-          timeout: 15,
-          maximumAge: 10000,
-          desiredAccuracy: 50,
+          timeout: 5,
+          maximumAge: 30000,
+          desiredAccuracy: 100,
           samples: 1,
         });
         latitude = location.coords.latitude;
         longitude = location.coords.longitude;
       } catch (gpsErr) {
-        console.warn('GPS lokatsiya olishda xato (simulyator fallback ishlatilmoqda):', gpsErr.message);
+        console.warn('GPS fallback:', gpsErr.message);
       }
 
       const resultAction = await dispatch(startSession({ latitude, longitude }));
@@ -656,7 +658,18 @@ const RunningScreen = ({ navigation }) => {
             if (endSession.fulfilled.match(resultAction)) {
               distanceRef.current = 0;
               lastLocationRef.current = null;
-              navigation.navigate('RunningResult');
+              if (resultAction.payload?.session) {
+                navigation.navigate('RunningResult');
+              } else {
+                Alert.alert(
+                  'Sessiya bekor qilindi',
+                  'GPS nuqtalari yetarli emas. Kamida bir oz yuring.',
+                  [{ text: 'OK' }]
+                );
+              }
+            } else {
+              const errMsg = resultAction.payload || 'Sessiyani tugatishda xato';
+              Alert.alert('Xato', errMsg);
             }
           },
         },

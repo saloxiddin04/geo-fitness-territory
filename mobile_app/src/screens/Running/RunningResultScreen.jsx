@@ -15,7 +15,7 @@ const RunningResultScreen = ({ navigation }) => {
 
   const handleDone = () => {
     dispatch(resetSession());
-    navigation.navigate('Home');
+    navigation.navigate('Main', { screen: 'Home' });
   };
 
   if (!session) {
